@@ -4,19 +4,9 @@ const cors = require('cors');
 const crypto = require('crypto');
 const { TwitterOuthApiService } = require('./TwitterOuthApiService');
 const { Utils } = require('./Utils');
-const fs = require('fs');
-const path = require('path');
-const axios = require('axios');
-const FormData = require('form-data');
 
 const app = express();
-app.use(cors({
-  origin: 'http://localhost:5173',  
-  methods: ['GET', 'POST', 'OPTIONS'],
-  allowedHeaders: ['Content-Type'],
-}));
-
-app.use(express.json());
+app.use(cors());
 
 const CLIENT_ID = process.env.CLIENT_ID;
 const CLIENT_SECRET = process.env.CLIENT_SECRET;
@@ -315,115 +305,6 @@ app.post('/generate', async (req, res) => {
     res.status(500).json({ 
       error: 'Failed to generate image',
       details: error.message 
-    });
-  }
-});
-
-// Updated backend endpoint with better debugging
-app.post('/tweet-with-image', async (req, res) => {
-  const { sessionId, imageUrl, tweetText } = req.body;
-  
-  console.log('🔍 Tweet request received:', {
-    sessionId: sessionId ? 'Present' : 'Missing',
-    imageUrl: imageUrl ? imageUrl.substring(0, 100) + '...' : 'Missing',
-    tweetText: tweetText ? 'Present' : 'Missing'
-  });
-
-  const sessionData = sessionStore.get(sessionId);
-  if (!sessionData) {
-    console.log('❌ Invalid session for sessionId:', sessionId);
-    return res.status(401).json({ error: 'Invalid or expired session' });
-  }
-
-  const { accessToken } = sessionData;
-  console.log('✅ Session found, accessToken present:', !!accessToken);
-
-  try {
-    console.log('📥 Downloading image from:', imageUrl.substring(0, 100) + '...');
-    
-    // Step 1: Download image from your image URL
-    const imageResponse = await axios.get(imageUrl, { 
-      responseType: 'arraybuffer',
-      timeout: 10000, // 10 second timeout
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (compatible; TwitterBot/1.0)'
-      }
-    });
-    
-    console.log('✅ Image downloaded:', {
-      size: imageResponse.data.length,
-      contentType: imageResponse.headers['content-type']
-    });
-    
-    const imageBuffer = Buffer.from(imageResponse.data);
-
-    // Step 2: Upload media to Twitter
-    const uploadMediaUrl = 'https://upload.twitter.com/1.1/media/upload.json';
-
-    const mediaForm = new FormData();
-    mediaForm.append('media', imageBuffer, {
-      filename: 'agent-image.jpg',
-      contentType: imageResponse.headers['content-type'] || 'image/jpeg'
-    });
-
-    console.log('📤 Uploading to Twitter...');
-    const uploadRes = await axios.post(uploadMediaUrl, mediaForm, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        ...mediaForm.getHeaders()
-      },
-      timeout: 30000 // 30 second timeout for upload
-    });
-
-    const mediaId = uploadRes.data.media_id_string;
-    console.log('✅ Media uploaded to Twitter:', mediaId);
-
-    // Step 3: Post tweet with media ID
-    console.log('📝 Posting tweet...');
-    const tweetRes = await axios.post(
-      'https://api.twitter.com/2/tweets',
-      {
-        text: tweetText || 'Check this out!',
-        media: { media_ids: [mediaId] }
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          'Content-Type': 'application/json'
-        },
-        timeout: 15000 // 15 second timeout
-      }
-    );
-
-    console.log('✅ Tweet posted successfully:', tweetRes.data.data.id);
-    res.json({ success: true, tweetId: tweetRes.data.data.id });
-    
-  } catch (err) {
-    console.error('❌ Detailed error:', {
-      message: err.message,
-      status: err.response?.status,
-      statusText: err.response?.statusText,
-      data: err.response?.data,
-      url: err.config?.url
-    });
-    
-    // More specific error messages
-    let errorMessage = 'Failed to tweet with image';
-    if (err.code === 'ENOTFOUND' || err.code === 'ECONNREFUSED') {
-      errorMessage = 'Failed to download image - URL not accessible';
-    } else if (err.response?.status === 403) {
-      errorMessage = 'Twitter API access denied - check permissions';
-    } else if (err.response?.status === 401) {
-      errorMessage = 'Twitter authentication failed';
-    } else if (err.response?.data?.errors) {
-      errorMessage = `Twitter API error: ${err.response.data.errors[0]?.message || 'Unknown'}`;
-    }
-    
-    res.status(500).json({ 
-      error: errorMessage, 
-      details: err.response?.data || err.message,
-      step: err.config?.url?.includes('upload.twitter.com') ? 'upload' : 
-            err.config?.url?.includes('api.twitter.com') ? 'tweet' : 'download'
     });
   }
 });
