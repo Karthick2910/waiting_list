@@ -34,7 +34,7 @@ const AIAgent = ({ onAgentComplete, setGeneratedImage }) => {
     setUserPrompt("");
 
     try {
-      const res = await fetch("http://localhost:3001/generate", {
+      const res = await fetch("https://waitinglist-bvqo.onrender.com/generate", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

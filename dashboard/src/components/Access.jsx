@@ -56,7 +56,7 @@ const Access = () => {
 
     // Listen for messages from Twitter OAuth popup
     const handleMessage = (event) => {
-      if (event.origin !== "http://localhost:3001") return;
+      if (event.origin !== "https://waitinglist-bvqo.onrender.com/auth/twitter") return;
 
       if (event.data.type === "TWITTER_LOGIN_COMPLETE") {
         console.log("Twitter login completed:", event.data);
@@ -162,7 +162,7 @@ const Access = () => {
     setCheckingFollowStatus(true);
     try {
       const response = await fetch(
-        `http://localhost:3001/check-follow-status/${sessionId}`
+        `https://waitinglist-bvqo.onrender.com/auth/twitter/check-follow-status/${sessionId}`
       );
 
       if (response.ok) {
@@ -206,7 +206,7 @@ const Access = () => {
       // Open Twitter OAuth in new tab
       setTwitterAuthInProgress(true);
       const popup = window.open(
-        "http://localhost:3001/auth/twitter",
+        "https://waitinglist-bvqo.onrender.com/auth/twitter",
         "_blank",
         "width=600,height=700"
       );
@@ -486,7 +486,7 @@ const Access = () => {
           shareButton.disabled = true;
         }
 
-        const response = await fetch("http://localhost:3001/tweet-with-image", {
+        const response = await fetch("https://waitinglist-bvqo.onrender.com/tweet-with-image", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
