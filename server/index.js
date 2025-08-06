@@ -7,6 +7,7 @@ const { Utils } = require('./Utils');
 
 const app = express();
 app.use(cors());
+app.use(express.json());
 
 const CLIENT_ID = process.env.CLIENT_ID;
 const CLIENT_SECRET = process.env.CLIENT_SECRET;
@@ -270,7 +271,7 @@ app.get('/check-follow-status/:sessionId', async (req, res) => {
   }
 });
 
-app.post('/generate', async (req, res) => {
+app.post('/generate/', async (req, res) => {
   try {
     const { prompt } = req.body;
     
@@ -281,7 +282,7 @@ app.post('/generate', async (req, res) => {
     console.log('Generating image for prompt:', prompt);
 
     // Call the actual AI image generation API
-    const response = await fetch('http://3.110.117.90:5000/generate', {
+    const response = await fetch('http://15.206.205.90:5000/generate', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
