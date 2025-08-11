@@ -271,17 +271,16 @@ app.get('/check-follow-status/:sessionId', async (req, res) => {
   }
 });
 
-app.post('/generate/', async (req, res) => {
+app.post('/generate', async (req, res) => {
   try {
     const { prompt } = req.body;
-    
+
     if (!prompt) {
       return res.status(400).json({ error: 'Prompt is required' });
     }
 
     console.log('Generating image for prompt:', prompt);
 
-    // Call the actual AI image generation API
     const response = await fetch('http://15.206.205.90:5000/generate', {
       method: 'POST',
       headers: {
@@ -291,24 +290,25 @@ app.post('/generate/', async (req, res) => {
       body: JSON.stringify({ prompt })
     });
 
+    const data = await response.json().catch(() => ({}));
+
     if (!response.ok) {
-      throw new Error(`AI API responded with status: ${response.status}`);
+      return res.status(response.status).json({
+        error: data.message || data.error || 'Failed to generate image'
+      });
     }
 
-    const data = await response.json();
-    console.log('AI API response:', data);
-
-    // Forward the response from the AI API
     res.json(data);
 
   } catch (error) {
     console.error('Error calling AI image generation API:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: 'Failed to generate image',
-      details: error.message 
+      details: error.message
     });
   }
 });
+
 
 
 const PORT = process.env.PORT || 3001;
