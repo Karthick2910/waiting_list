@@ -281,7 +281,7 @@ app.post('/generate', async (req, res) => {
 
     console.log('Generating image for prompt:', prompt);
 
-    const response = await fetch('http://15.206.205.90:5000/generate', {
+    const response = await fetch('http://3.110.191.145:5000/generate/', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
