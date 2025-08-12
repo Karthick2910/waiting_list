@@ -6,7 +6,10 @@ const { TwitterOuthApiService } = require('./TwitterOuthApiService');
 const { Utils } = require('./Utils');
 
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: ['http://localhost:3000', 'https://agent.coinfantasy.io', 'https://coinfantasy.io'],
+  credentials: true
+}));
 app.use(express.json());
 
 const CLIENT_ID = process.env.CLIENT_ID;
